@@ -120,12 +120,12 @@
   args:
     executable: /bin/bash
 
-- name: enable aliases for bashit
-  ansible.builtin.shell: "bashit enable alias {{ item }}"
-  loop:
-    - dnf
-    - git
-    - terraform
+#- name: enable aliases for bashit
+#  ansible.builtin.shell: "bashit enable alias {{ item }}"
+#  loop:
+#    - dnf
+#    - git
+#    - terraform
 
 - name: Check if font already exists
   ansible.builtin.stat:

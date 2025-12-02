@@ -67,7 +67,6 @@
     dest: "{{ ansible_env.HOME }}/.bash_it"
 
 - name: Run bash-it installer
-  ansible.builtin.shell: "{ ansible_env.HOME }}/.bash_it/install.sh --silent"
   args:
     creates: "{{ ansible_env.HOME }}/.bashrc.bak"
 
@@ -79,7 +78,7 @@
 
 - name: Add cargo to PATH if not already present
   ansible.builtin.lineinfile:
-    path: "~{{ ansible_env.HOME }}/.bashrc"
+    path: "{{ ansible_env.HOME }}/.bashrc"
     search_string: 'export PATH="$PATH:{{ ansible_env.HOME }}/.cargo/bin"'
     line: 'export PATH="$PATH:/{{ ansible_env.HOME }}/.cargo/bin"'
     state: present

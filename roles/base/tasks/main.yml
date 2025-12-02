@@ -60,6 +60,19 @@
     depth: 1
     dest: "{{ ansible_env.HOME }}/.config/nvim"
 
+- name: Check if nvim exists
+  ansible.builtin.stat:
+    path: /usr/bin/nvim
+  register: nvim
+
+- name: Create symlink only if nvim exists
+  ansible.builtin.file:
+    src: /usr/bin/nvim
+    dest: /usr/bin/vim
+    state: link
+    force: yes
+  when: nvim.stat.exists
+
 - name: Get Bash-it via git
   ansible.builtin.git:
     repo: https://github.com/Bash-it/bash-it.git
@@ -112,3 +125,29 @@
     - dnf
     - git
     - terraform
+
+- name: Check if font already exists
+  ansible.builtin.stat:
+    path: "/usr/share/fonts/NerdFontsSymbolsOnly/SymbolsNerdFont-Regular.ttf"
+  register: nerd_installed
+
+- name: Download Nerd Font Symbols
+  become: true
+  ansible.builtin.get_url:
+    url: "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/NerdFontsSymbolsOnly.zip"
+    dest: /tmp/
+    mode: '0644'
+  when: not nerd_installed.stat.exists
+
+- name: Extract Nerd Font Symbols to local fonts folder
+  become: true
+  ansible.builtin.unarchive:
+    src: "/tmp/NerdFontsSymbolsOnly.zip"
+    dest: "/usr/share/fonts/"
+    remote_src: true
+  when: not nerd_installed.stat.exists
+
+- name: Refresh font cache
+  become: true
+  ansible.builtin.command: fc-cache -f -v
+  when: not nerd_installed.stat.exists

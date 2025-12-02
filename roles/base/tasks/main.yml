@@ -66,6 +66,7 @@
   register: nvim
 
 - name: Create symlink only if nvim exists
+  become: true
   ansible.builtin.file:
     src: /usr/bin/nvim
     dest: /usr/bin/vim

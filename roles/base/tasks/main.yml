@@ -47,10 +47,10 @@
   ansible.builtin.git:
     repo: https://github.com/AstroNvim/template
     depth: 1
-    dest: {{ ansible_env.HOME }}/.config/nvim
+    dest: "{{ ansible_env.HOME }}/.config/nvim"
 
 - name: Get Bash-it via git
   ansible.builtin.git:
     repo: https://github.com/Bash-it/bash-it.git
     depth: 1
-    dest: {{ ansible_env.HOME }}/.bash_it
+    dest: "{{ ansible_env.HOME }}/.bash_it"

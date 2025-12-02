@@ -98,6 +98,12 @@
     line: 'export PATH="$PATH:{{ ansible_env.HOME }}/.cargo/bin"'
     state: present
 
+- name: change default editor
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    search_string: "export EDITOR=/usr/bin/vim"
+    line: "export EDITOR=/usr/bin/vim"
+
 - name: Ensure custom Bash-It alias file exists
   ansible.builtin.file:
     path: "{{ ansible_env.HOME }}/.bash_it/aliases/custom.aliases.bash"
@@ -129,7 +135,7 @@
 
 - name: Check if font already exists
   ansible.builtin.stat:
-    path: "/usr/share/fonts/NerdFontsSymbolsOnly/SymbolsNerdFont-Regular.ttf"
+    path: "/usr/share/fonts/SymbolsNerdFont-Regular.ttf"
   register: nerd_installed
 
 - name: Download Nerd Font Symbols

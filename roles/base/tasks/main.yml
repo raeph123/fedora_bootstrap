@@ -1,5 +1,9 @@
 ---
 # Basic system config & essentials
+- name: enable COPR repo for lazygit
+  community.general.copr:
+    name: "dejan/lazygit"
+    state: enabled
 
 - name: Update system
   dnf:

@@ -80,3 +80,11 @@
     path: "~{{ ansible_user }}/.bashrc"
     regexp: "^export BASH_IT_THEME="
     line: "export BASH_IT_THEME='inretio'"
+
+- name: Add cargo to PATH if not already present
+  become_user: "{{ ansible_user }}"
+  ansible.builtin.lineinfile:
+    path: "~{{ ansible_user }}/.bashrc"
+    search_string: 'export PATH="$PATH:/home/{{ ansible_user }}/.cargo/bin"'
+    line: 'export PATH="$PATH:/home/{{ ansible_user }}/.cargo/bin"'
+    state: present

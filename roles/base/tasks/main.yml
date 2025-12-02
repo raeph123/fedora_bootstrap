@@ -58,7 +58,7 @@
   ansible.builtin.git:
     repo: https://github.com/AstroNvim/template
     depth: 1
-    dest: "~{{ ansible_env.HOME }}/.config/nvim"
+    dest: "{{ ansible_env.HOME }}/.config/nvim"
 
 - name: Get Bash-it via git
   ansible.builtin.git:
@@ -81,5 +81,37 @@
   ansible.builtin.lineinfile:
     path: "{{ ansible_env.HOME }}/.bashrc"
     search_string: 'export PATH="$PATH:{{ ansible_env.HOME }}/.cargo/bin"'
-    line: 'export PATH="$PATH:/{{ ansible_env.HOME }}/.cargo/bin"'
+    line: 'export PATH="$PATH:{{ ansible_env.HOME }}/.cargo/bin"'
     state: present
+
+- name: Ensure custom Bash-It alias file exists
+  become_user: "{{ ansible_real_user_id }}"
+  ansible.builtin.file:
+    path: "{{ ansible_real_user_home }}/.bash_it/aliases/custom.aliases.bash"
+    state: touch
+
+- name: Replace ls aliases with eza equivalents
+  become_user: "{{ ansible_real_user_id }}"
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_real_user_home }}/.bash_it/aliases/custom.aliases.bash"
+    regexp: "^alias {{ item.name }}="
+    line: "alias {{ item.name }}='{{ item.value }}'"
+    create: yes
+  loop:
+    - { name: "l",  value: "eza -l" }
+    - { name: "la", value: "eza -la" }
+    - { name: "ll", value: "eza -la" }
+    - { name: "tree", value: "eza --tree"}
+
+- name: Source bashrc to activate aliases immediately
+  become_user: "{{ ansible_real_user_id }}"
+  ansible.builtin.shell: "source ~/.bashrc"
+  args:
+    executable: /bin/bash
+
+- name: enable aliases for bashit
+  ansible.builtin.shell: "bashit enable alias {{ item }}"
+  loop:
+    - dnf
+    - git
+    - terraform

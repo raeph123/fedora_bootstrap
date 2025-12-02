@@ -1,16 +1,19 @@
 ---
 # Basic system config & essentials
 - name: enable COPR repo for lazygit
+  become: true
   community.general.copr:
     name: "dejan/lazygit"
     state: enabled
 
 - name: Update system
+  become: true
   dnf:
     name: "*"
     state: latest
 
 - name: Install base packages
+  become: true
   dnf:
     name:
       - git
@@ -30,7 +33,6 @@
     state: present
 
 - name: Install eza via cargo
-  become_user: "{{ ansible_user }}"
   community.general.cargo:
     name: eza
     state: latest
@@ -39,7 +41,6 @@
     PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
 
 - name: Install bottom (recommended for AstroNVim) via cargo
-  become_user: "{{ ansible_user }}" 
   community.general.cargo:
     name: bottom
     state: latest
@@ -48,43 +49,37 @@
     PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
 
 - name: Ensure nvim directory exists
-  become_user: "{{ ansible_user }}"
   ansible.builtin.file:
-    path: "~{{ ansible_user }}/.config/nvim"
+    path: "{{ ansible_env.HOME }}/.config/nvim"
     state: directory
     mode: "0755"
 
 - name: Get AstroNVim via git
-  become: "{{ ansible_user }}"
   ansible.builtin.git:
     repo: https://github.com/AstroNvim/template
     depth: 1
-    dest: "~{{ ansible_user }}/.config/nvim"
+    dest: "~{{ ansible_env.HOME }}/.config/nvim"
 
 - name: Get Bash-it via git
-  become: "{{ ansible_user }}"
   ansible.builtin.git:
     repo: https://github.com/Bash-it/bash-it.git
     depth: 1
     dest: "{{ ansible_env.HOME }}/.bash_it"
 
 - name: Run bash-it installer
-  become_user: "{{ ansible_user }}"
-  ansible.builtin.shell: "~{{ ansible_user }}/.bash_it/install.sh --silent"
+  ansible.builtin.shell: "~{{ ansible_env.HOME }}/.bash_it/install.sh --silent"
   args:
-    creates: "~{{ ansible_user }}/.bashrc.bak"
+    creates: "{{ ansible_env.HOME }}/.bashrc.bak"
 
 - name: Set Bash-It Theme
-  become_user: "{{ ansible_user }}"
   ansible.builtin.lineinfile:
-    path: "~{{ ansible_user }}/.bashrc"
+    path: "{{ ansible_env.HOME }}/.bashrc"
     regexp: "^export BASH_IT_THEME="
     line: "export BASH_IT_THEME='inretio'"
 
 - name: Add cargo to PATH if not already present
-  become_user: "{{ ansible_user }}"
   ansible.builtin.lineinfile:
-    path: "~{{ ansible_user }}/.bashrc"
-    search_string: 'export PATH="$PATH:/home/{{ ansible_user }}/.cargo/bin"'
-    line: 'export PATH="$PATH:/home/{{ ansible_user }}/.cargo/bin"'
+    path: "~{{ ansible_env.HOME }}/.bashrc"
+    search_string: 'export PATH="$PATH:{{ ansible_env.HOME }}/.cargo/bin"'
+    line: 'export PATH="$PATH:/{{ ansible_env.HOME }}/.cargo/bin"'
     state: present

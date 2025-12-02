@@ -85,9 +85,8 @@
     state: present
 
 - name: Ensure custom Bash-It alias file exists
-  become_user: "{{ ansible_real_user_id }}"
   ansible.builtin.file:
-    path: "{{ ansible_real_user_home }}/.bash_it/aliases/custom.aliases.bash"
+    path: "{{ ansible_env.HOME }}/.bash_it/aliases/custom.aliases.bash"
     state: touch
 
 - name: Replace ls aliases with eza equivalents
@@ -104,7 +103,6 @@
     - { name: "tree", value: "eza --tree"}
 
 - name: Source bashrc to activate aliases immediately
-  become_user: "{{ ansible_real_user_id }}"
   ansible.builtin.shell: "source ~/.bashrc"
   args:
     executable: /bin/bash

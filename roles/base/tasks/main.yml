@@ -67,6 +67,7 @@
     dest: "{{ ansible_env.HOME }}/.bash_it"
 
 - name: Run bash-it installer
+  ansible.builtin.shell: "{{ ansible_env.HOME }}/.bash_it/install.sh --silent"
   args:
     creates: "{{ ansible_env.HOME }}/.bashrc.bak"
 

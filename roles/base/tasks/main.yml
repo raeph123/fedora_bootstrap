@@ -12,11 +12,6 @@
     name: "*"
     state: latest
 
-- name: Add Hashicorp repo via repofile URL
-  ansible.builtin.yum_repository:
-    name: terraform
-    baseurl: https://rpm.releases.hashicorp.com/fedora/hashicorp.repo
-
 - name: Install base packages
   become: true
   dnf:
@@ -35,7 +30,6 @@
       - unar
       - lazygit
       - gdu
-      - terraform
     state: present
 
 - name: Install eza via cargo

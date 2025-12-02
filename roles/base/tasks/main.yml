@@ -90,9 +90,8 @@
     state: touch
 
 - name: Replace ls aliases with eza equivalents
-  become_user: "{{ ansible_real_user_id }}"
   ansible.builtin.lineinfile:
-    path: "{{ ansible_real_user_home }}/.bash_it/aliases/custom.aliases.bash"
+    path: "{{ ansible_env.HOME }}/.bash_it/aliases/custom.aliases.bash"
     regexp: "^alias {{ item.name }}="
     line: "alias {{ item.name }}='{{ item.value }}'"
     create: yes

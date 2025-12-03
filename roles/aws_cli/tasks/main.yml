@@ -1,0 +1,59 @@
+---
+# Install the latest aws-cli
+- name: Check if AWS CLI is already installed
+  ansible.builtin.command: aws --version
+  register: awscli_check
+  ignore_errors: true
+
+- name: Determine package architecture
+  ansible.builtin.set_fact:
+    awscli_arch: "{{ 'x86_64' if ansible_architecture == 'x86_64' else 'aarch64' }}"
+  when: awscli_check.rc != 0
+
+- name: Set AWS CLI download URL
+  ansible.builtin.set_fact:
+    awscli_url: "https://awscli.amazonaws.com/awscli-exe-linux-{{ awscli_arch }}.zip"
+  when: awscli_check.rc != 0
+
+- name: Ensure tools directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/tools/aws-cli"
+    state: directory
+    mode: "0755"
+  when: awscli_check.rc != 0
+
+- name: Download AWS CLI archive
+  ansible.builtin.get_url:
+    url: "{{ awscli_url }}"
+    dest: "/tmp/awscliv2.zip"
+    mode: "0644"
+  when: awscli_check.rc != 0
+
+- name: Unzip AWS CLI archive
+  ansible.builtin.unarchive:
+    src: "/tmp/awscliv2.zip"
+    dest: "/tmp/"
+    remote_src: yes
+  when: awscli_check.rc != 0
+
+- name: Install AWS CLI into custom directory
+  ansible.builtin.command: >
+    /tmp/aws/install --bin-dir {{ ansible_env.HOME }}/tools/aws-cli/bin
+                     --install-dir {{ ansible_env.HOME }}/tools/aws-cli
+                     --update
+  when: awscli_check.rc != 0
+
+- name: Ensure /usr/local/bin/aws symlink points to custom install
+  ansible.builtin.file:
+    src: "{{ ansible_env.HOME }}/tools/aws-cli/bin/aws"
+    dest: "/usr/local/bin/aws"
+    state: link
+    force: true
+  become: true
+
+- name: Cleanup installer files
+  ansible.builtin.file:
+    path: "/tmp/aws"
+    state: absent
+  when: awscli_check.rc != 0
+

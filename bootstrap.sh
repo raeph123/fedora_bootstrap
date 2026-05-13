@@ -7,5 +7,5 @@ ansible-galaxy collection install community.general
 
 ansible-pull \
   -U https://github.com/raeph123/fedora-bootstrap.git \
-  --inventory-file inventory \
+  --inventory inventory \
   playbook.yml

@@ -30,6 +30,7 @@
       - unar
       - lazygit
       - gdu
+      - git-credential-oauth
     state: present
 
 - name: Install eza via cargo
@@ -38,7 +39,7 @@
     state: latest
     locked: true
   environment:
-    PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
+    PATH: "{{ ansible_facts.user_dir }}/.cargo/bin:{{ ansible_facts.env.PATH }}"
 
 - name: Install bottom (recommended for AstroNVim) via cargo
   community.general.cargo:
@@ -46,11 +47,11 @@
     state: latest
     locked: true
   environment:
-    PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
+    PATH: "{{ ansible_facts.user_dir }}/.cargo/bin:{{ ansible_facts.env.PATH }}"
 
 - name: Ensure nvim directory exists
   ansible.builtin.file:
-    path: "{{ ansible_env.HOME }}/.config/nvim"
+    path: "{{ ansible_facts.user_dir }}/.config/nvim"
     state: directory
     mode: "0755"
 
@@ -58,7 +59,7 @@
   ansible.builtin.git:
     repo: https://github.com/AstroNvim/template
     depth: 1
-    dest: "{{ ansible_env.HOME }}/.config/nvim"
+    dest: "{{ ansible_facts.user_dir }}/.config/nvim"
 
 - name: Check if nvim exists
   ansible.builtin.stat:
@@ -78,40 +79,40 @@
   ansible.builtin.git:
     repo: https://github.com/Bash-it/bash-it.git
     depth: 1
-    dest: "{{ ansible_env.HOME }}/.bash_it"
+    dest: "{{ ansible_facts.user_dir }}/.bash_it"
 
 - name: Run bash-it installer
-  ansible.builtin.shell: "{{ ansible_env.HOME }}/.bash_it/install.sh --silent"
+  ansible.builtin.shell: "{{ ansible_facts.user_dir }}/.bash_it/install.sh --silent"
   args:
-    creates: "{{ ansible_env.HOME }}/.bashrc.bak"
+    creates: "{{ ansible_facts.user_dir }}/.bashrc.bak"
 
 - name: Set Bash-It Theme
   ansible.builtin.lineinfile:
-    path: "{{ ansible_env.HOME }}/.bashrc"
+    path: "{{ ansible_facts.user_dir }}/.bashrc"
     regexp: "^export BASH_IT_THEME="
     line: "export BASH_IT_THEME='inretio'"
 
 - name: Add cargo to PATH if not already present
   ansible.builtin.lineinfile:
-    path: "{{ ansible_env.HOME }}/.bashrc"
-    search_string: 'export PATH="$PATH:{{ ansible_env.HOME }}/.cargo/bin"'
-    line: 'export PATH="$PATH:{{ ansible_env.HOME }}/.cargo/bin"'
+    path: "{{ ansible_facts.user_dir }}/.bashrc"
+    search_string: 'export PATH="$PATH:{{ ansible_facts.user_dir }}/.cargo/bin"'
+    line: 'export PATH="$PATH:{{ ansible_facts.user_dir }}/.cargo/bin"'
     state: present
 
 - name: change default editor
   ansible.builtin.lineinfile:
-    path: "{{ ansible_env.HOME }}/.bashrc"
+    path: "{{ ansible_facts.user_dir }}/.bashrc"
     search_string: "export EDITOR=/usr/bin/vim"
     line: "export EDITOR=/usr/bin/vim"
 
 - name: Ensure custom Bash-It alias file exists
   ansible.builtin.file:
-    path: "{{ ansible_env.HOME }}/.bash_it/aliases/custom.aliases.bash"
+    path: "{{ ansible_facts.user_dir }}/.bash_it/aliases/custom.aliases.bash"
     state: touch
 
 - name: Replace ls aliases with eza equivalents
   ansible.builtin.lineinfile:
-    path: "{{ ansible_env.HOME }}/.bash_it/aliases/custom.aliases.bash"
+    path: "{{ ansible_facts.user_dir }}/.bash_it/aliases/custom.aliases.bash"
     regexp: "^alias {{ item.name }}="
     line: "alias {{ item.name }}='{{ item.value }}'"
     create: yes

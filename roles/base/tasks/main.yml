@@ -31,6 +31,7 @@
       - lazygit
       - gdu
       - git-credential-oauth
+      - uv
     state: present
 
 - name: Install eza via cargo

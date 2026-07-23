@@ -1,0 +1,132 @@
+---
+- name: Update system
+  become: true
+  dnf:
+    name: "*"
+    state: latest
+
+- name: Install Git Credential Manager dependencies
+  ansible.builtin.dnf:
+    name: "{{ gcm_packages }}"
+    state: present
+  become: true
+
+- name: Ensure .dotnet tools directory exists
+  ansible.builtin.file:
+    path: "{{ gcm_dotnet_tools_dir }}"
+    state: directory
+    owner: "{{ gcm_user }}"
+    group: "{{ gcm_user }}"
+    mode: "0755"
+  become: true
+
+- name: Check whether Git Credential Manager is installed as dotnet tool
+  ansible.builtin.command:
+    cmd: dotnet tool list --global
+  register: gcm_dotnet_tool_list
+  changed_when: false
+  environment:
+    PATH: "{{ gcm_dotnet_tools_dir }}:{{ ansible_facts.env.PATH }}"
+    HOME: "{{ gcm_user_home }}"
+
+- name: Install Git Credential Manager dotnet tool
+  ansible.builtin.command:
+    cmd: "dotnet tool install --global {{ gcm_dotnet_tool_name }}"
+  when: gcm_dotnet_tool_name not in gcm_dotnet_tool_list.stdout
+  environment:
+    PATH: "{{ gcm_dotnet_tools_dir }}:{{ ansible_facts.env.PATH }}"
+    HOME: "{{ gcm_user_home }}"
+
+- name: Update Git Credential Manager dotnet tool
+  ansible.builtin.command:
+    cmd: "dotnet tool update --global {{ gcm_dotnet_tool_name }}"
+  when:
+    - gcm_update_tool | bool
+    - gcm_dotnet_tool_name in gcm_dotnet_tool_list.stdout
+  register: gcm_dotnet_tool_update
+  changed_when: >
+    'Tool was successfully updated' in gcm_dotnet_tool_update.stdout or
+    'wurde erfolgreich aktualisiert' in gcm_dotnet_tool_update.stdout
+  failed_when: >
+    gcm_dotnet_tool_update.rc != 0 and
+    'is already installed' not in gcm_dotnet_tool_update.stderr and
+    'already installed' not in gcm_dotnet_tool_update.stdout
+  environment:
+    PATH: "{{ gcm_dotnet_tools_dir }}:{{ ansible_facts.env.PATH }}"
+    HOME: "{{ gcm_user_home }}"
+
+- name: Add dotnet tools directory to shell profiles
+  ansible.builtin.lineinfile:
+    path: "{{ item }}"
+    line: 'export PATH="$HOME/.dotnet/tools:$PATH"'
+    create: true
+    owner: "{{ gcm_user }}"
+    group: "{{ gcm_user }}"
+    mode: "0644"
+  become: true
+  loop: "{{ gcm_shell_profiles }}"
+
+- name: Configure Git Credential Manager as Git credential helper
+  ansible.builtin.command:
+    cmd: "{{ gcm_dotnet_tools_dir }}/git-credential-manager configure"
+  register: gcm_configure_result
+  changed_when: false
+  environment:
+    PATH: "{{ gcm_dotnet_tools_dir }}:{{ ansible_facts.env.PATH }}"
+    HOME: "{{ gcm_user_home }}"
+
+- name: Configure Git credential helper explicitly
+  community.general.git_config:
+    name: credential.helper
+    scope: global
+    value: manager
+  environment:
+    HOME: "{{ gcm_user_home }}"
+
+- name: Configure GCM credential store
+  community.general.git_config:
+    name: credential.credentialStore
+    scope: global
+    value: "{{ gcm_credential_store }}"
+  environment:
+    HOME: "{{ gcm_user_home }}"
+
+- name: Configure GitHub browser authentication
+  community.general.git_config:
+    name: credential.gitHubAuthModes
+    scope: global
+    value: browser
+  when: gcm_configure_github_browser | bool
+  environment:
+    HOME: "{{ gcm_user_home }}"
+
+- name: Configure GitLab browser authentication
+  community.general.git_config:
+    name: credential.gitLabAuthModes
+    scope: global
+    value: browser
+  when: gcm_configure_gitlab_browser | bool
+  environment:
+    HOME: "{{ gcm_user_home }}"
+
+- name: Configure Microsoft/Azure DevOps system browser authentication
+  community.general.git_config:
+    name: credential.msauthFlow
+    scope: global
+    value: system
+  when: gcm_configure_microsoft_system_browser | bool
+  environment:
+    HOME: "{{ gcm_user_home }}"
+
+- name: Verify Git Credential Manager installation
+  ansible.builtin.command:
+    cmd: "{{ gcm_dotnet_tools_dir }}/git-credential-manager --version"
+  register: gcm_version
+  changed_when: false
+  environment:
+    PATH: "{{ gcm_dotnet_tools_dir }}:{{ ansible_facts.env.PATH }}"
+    HOME: "{{ gcm_user_home }}"
+
+- name: Show Git Credential Manager version
+  ansible.builtin.debug:
+    msg: "Git Credential Manager installed: {{ gcm_version.stdout }}"

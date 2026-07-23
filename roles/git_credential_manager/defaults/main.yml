@@ -1,0 +1,26 @@
+---
+gcm_user: "{{ ansible_facts['user_id'] }}"
+
+gcm_user_home: "{{ ansible_facts['user_dir'] }}"
+
+gcm_packages:
+  - dotnet-sdk-10.0
+  - libsecret
+  - gnome-keyring
+
+gcm_dotnet_tool_name: git-credential-manager
+
+gcm_dotnet_tools_dir: "{{ gcm_user_home }}/.dotnet/tools"
+
+gcm_credential_store: secretservice
+
+# Browser Auth Modes
+gcm_configure_github_browser: true
+gcm_configure_gitlab_browser: false
+gcm_configure_microsoft_system_browser: false
+
+gcm_shell_profiles:
+  - "{{ gcm_user_home }}/.bashrc"
+#  - "{{ gcm_user_home }}/.zshrc"
+
+gcm_update_tool: true

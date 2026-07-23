@@ -1,8 +1,4 @@
 ---
-# Security / HackTheBox tooling
-# Vorbild: base-Rolle. Installiert gängige Tools für HTB-Boxen (Recon, Web,
-# Passwörter, Exploitation, Binary/Pwn) plus Wordlists.
-
 - name: Ensure ~/tools directory exists (für git-basierte Tools)
   ansible.builtin.file:
     path: "{{ ansible_facts.user_dir }}/tools"
@@ -36,9 +32,6 @@
       - john
       - hydra
     state: present
-  # Hinweis: hydra liegt in manchen Fedora-Versionen nicht in den
-  # Standard-Repos. Falls der Task fehlschlägt, RPM Fusion aktivieren:
-  # sudo dnf install rpmfusion-free-release rpmfusion-nonfree-release
 
 - name: Install binary/pwn analysis packages
   become: true
@@ -63,11 +56,6 @@
     creates: "{{ ansible_facts.user_dir }}/.local/share/uv/tools/impacket"
   environment:
     PATH: "{{ ansible_facts.user_dir }}/.local/bin:{{ ansible_facts.env.PATH }}"
-
-# pwntools wird meist per "from pwn import *" in eigenen Exploit-Skripten
-# genutzt - dafür ist "uv tool install" ungeeignet (isoliert zu stark zum
-# Importieren, genau wie bei pipx). Stattdessen ein dediziertes venv über
-# uv, das man beim Exploiten aktiviert: source ~/tools/venv-pwntools/bin/activate
 
 - name: Check if pwntools venv already exists
   ansible.builtin.stat:
@@ -138,10 +126,3 @@
     search_string: "export SECLISTS="
     line: "export SECLISTS={{ ansible_facts.user_dir }}/tools/SecLists"
     state: present
-
-- name: Remind about manual installs (Metasploit, Burp Suite)
-  ansible.builtin.debug:
-    msg:
-      - "Metasploit und Burp Suite werden hier bewusst NICHT automatisiert installiert:"
-      - "- Metasploit: offizielles Install-Script von Rapid7 verwenden (curl https://raw.githubusercontent.com/rapid7/metasploit-omnibus/master/config/templates/metasploit-framework-wrappers/msfupdate.erb ...) oder via Flatpak/eigenes RPM"
-      - "- Burp Suite: Download der Community Edition von portswigger.net (Fedora hat kein offizielles Paket)"
